@@ -21,6 +21,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.sirkitboard.pokevision.util.AsyncCallback;
+import com.sirkitboard.pokevision.util.JSONParse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,9 +37,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
-
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncCallback {
     private GoogleMap mMap;
+    private ProgressDialog pDialog;
 
     double lat = 40.736866399, lon=-73.989969349;
 
@@ -90,36 +92,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setMyLocationEnabled(true);
         }
 
-         new JSONParse().execute("hi");
-
-        // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
-    }
-
-    private String readStream(InputStream in) {
-        BufferedReader reader = null;
-        StringBuffer response = new StringBuffer();
-        try {
-            reader = new BufferedReader(new InputStreamReader(in));
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return response.toString();
+         new JSONParse().execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
     }
 
     private String getStringResourceByName(String aString) {
@@ -134,7 +107,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return resId;
     }
 
-    public void querySuccess(JSONArray pokemons) {
+    public void reloadPokemon(View view) {
+        Location location = mMap.getMyLocation();
+        lat = location.getLatitude();
+        lon = location.getLongitude();
+        Log.d("Lat", lat + "");
+        Log.d("Lon", lon + "");
+        new JSONParse().execute("hi");
+    }
+
+    @Override
+    public void preExecute() {
+        pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Getting Data ...");
+        pDialog.setIndeterminate(false);
+        pDialog.setCancelable(true);
+        pDialog.show();
+    }
+
+    @Override
+    public void asyncSuccess(JSONArray pokemons) {
         mMap.clear();
         for(int i = 0; i<pokemons.length(); i++) {
             try {
@@ -152,64 +144,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void reloadPokemon(View view) {
-        Location location = mMap.getMyLocation();
-        lat = location.getLatitude();
-        lon = location.getLongitude();
-        Log.d("Lat", lat + "");
-        Log.d("Lon", lon + "");
-        new JSONParse().execute("hi");
-    }
-    private class JSONParse extends AsyncTask<String, String, JSONObject> {
-        private ProgressDialog pDialog;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog = new ProgressDialog(MapsActivity.this);
-            pDialog.setMessage("Getting Data ...");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(true);
-            pDialog.show();
-
-        }
-
-        @Override
-        protected JSONObject doInBackground(String... args) {
-            JSONObject json = null;
-            try {
-                URL url = new URL("https://pokevision.com/map/data/"+ lat +"/" + lon);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                try {
-                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                    json = new JSONObject(readStream(in));
-                } catch(JSONException e) {
-                    Log.e("ERRRRORRRRR", "idk");
-                    e.printStackTrace();
-                } finally {
-                    urlConnection.disconnect();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            // Getting JSON from URL
-            return json;
-        }
-        @Override
-        protected void onPostExecute(JSONObject json) {
-            pDialog.dismiss();
-            JSONArray pokemon;
-            try {
-                pokemon = json.getJSONArray("pokemon");
-                querySuccess(pokemon);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (NullPointerException e) {
-                Toast.makeText(getApplicationContext(), "Pokevision Down", Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-            }
-        }
+    @Override
+    public void asyncFailure() {
+        Toast.makeText(getApplicationContext(), "Pokevision Down", Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void asyncCompleted() {
+        pDialog.dismiss();
+    }
 }
