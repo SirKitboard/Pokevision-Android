@@ -92,7 +92,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setMyLocationEnabled(true);
         }
 
-         new JSONParse().execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
+         new JSONParse(this).execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
     }
 
     private String getStringResourceByName(String aString) {
@@ -113,7 +113,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         lon = location.getLongitude();
         Log.d("Lat", lat + "");
         Log.d("Lon", lon + "");
-        new JSONParse().execute("hi");
+        new JSONParse(this).execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
     }
 
     @Override

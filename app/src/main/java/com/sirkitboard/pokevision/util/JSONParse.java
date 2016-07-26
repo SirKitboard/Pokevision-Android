@@ -26,11 +26,14 @@ import java.net.URL;
 public class JSONParse extends AsyncTask<String, String, JSONObject> {
     private AsyncCallback callback;
 
+    public JSONParse(AsyncCallback callback) {
+        this.callback = callback;
+    }
+
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-
-
+        callback.preExecute();
     }
 
 
