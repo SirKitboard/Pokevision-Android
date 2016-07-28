@@ -85,7 +85,7 @@
     <string name="pokemonId80">Slowbro</string>
     <string name="pokemonId81">Magnemite</string>
     <string name="pokemonId82">Magneton</string>
-    "pokemonId83":"Farfetch'd"
+    <string name="pokemonId83">Farfetchd</string>
     <string name="pokemonId84">Doduo</string>
     <string name="pokemonId85">Dodrio</string>
     <string name="pokemonId86">Seel</string>
@@ -124,7 +124,7 @@
     <string name="pokemonId119">Seaking</string>
     <string name="pokemonId120">Staryu</string>
     <string name="pokemonId121">Starmie</string>
-    "pokemonId122":"Mr. Mime"
+    <string name="pokemonId122">Mr. Mime</string>
     <string name="pokemonId123">Scyther</string>
     <string name="pokemonId124">Jynx</string>
     <string name="pokemonId125">Electabuzz</string>
@@ -252,7 +252,7 @@
     <string name="pokemonId247">Pupitar</string>
     <string name="pokemonId248">Tyranitar</string>
     <string name="pokemonId249">Lugia</string>
-    "pokemonId250":"Ho-Oh"
+    <string name="pokemonId250">Ho-Oh</string>
     <string name="pokemonId251">Celebi</string>
     <string name="pokemonId252">Treecko</string>
     <string name="pokemonId253">Grovyle</string>
@@ -441,7 +441,7 @@
     <string name="pokemonId436">Bronzor</string>
     <string name="pokemonId437">Bronzong</string>
     <string name="pokemonId438">Bonsly</string>
-    "pokemonId439":"Mime Jr."
+    <string name="pokemonId439">Mime Jr.</string>
     <string name="pokemonId440">Happiny</string>
     <string name="pokemonId441">Chatot</string>
     <string name="pokemonId442">Spiritomb</string>
@@ -476,7 +476,7 @@
     <string name="pokemonId471">Glaceon</string>
     <string name="pokemonId472">Gliscor</string>
     <string name="pokemonId473">Mamoswine</string>
-    "pokemonId474":"Porygon-Z"
+    <string name="pokemonId474">Porygon-Z</string>
     <string name="pokemonId475">Gallade</string>
     <string name="pokemonId476">Probopass</string>
     <string name="pokemonId477">Dusknoir</string>

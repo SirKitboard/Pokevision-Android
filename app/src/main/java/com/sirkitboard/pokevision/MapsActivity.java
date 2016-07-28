@@ -5,14 +5,20 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.app.job.JobScheduler;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -76,6 +82,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setMyLocationEnabled(true);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.map_menu, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.new_game:
+                launchBackgroundServiceActivity();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void launchBackgroundServiceActivity() {
+        Intent intent = new Intent(getApplicationContext(), BackgroundPreference.class);
+        startActivity(intent);
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -94,9 +126,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     123);
         } else {
             mMap.setMyLocationEnabled(true);
+            Location location = getMyLocation();
+            if(location != null) {
+                lat = location.getLatitude();
+                lon = location.getLongitude();
+                new JSONParse(this).execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
+            }
+        }
+    }
+
+    private Location getMyLocation() {
+        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        Location myLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+        if (myLocation == null) {
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            String provider = lm.getBestProvider(criteria, true);
+            System.out.println(provider);
+            myLocation = lm.getLastKnownLocation(provider);
         }
 
-         new JSONParse(this).execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
+        return myLocation;
     }
 
     private String getStringResourceByName(String aString) {
