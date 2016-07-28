@@ -41,8 +41,12 @@
 
         <service
             android:name=".PokeCheck"
-            android:enabled="true"
-            android:exported="true"></service>
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <activity
+            android:name=".BackgroundPreference"
+            android:label="@string/title_activity_background_preference"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

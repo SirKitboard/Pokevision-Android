@@ -3,6 +3,8 @@ package com.sirkitboard.pokevision;
 import android.*;
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.app.job.JobScheduler;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -41,12 +43,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private ProgressDialog pDialog;
 
+//    JobScheduler mJobScheduler;
+
     double lat = 40.736866399, lon=-73.989969349;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+//        mJobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);

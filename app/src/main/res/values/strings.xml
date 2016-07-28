@@ -724,4 +724,5 @@
     <string name="pokemonId719">Diancie</string>
     <string name="pokemonId720">Hoopa</string>
     <string name="pokemonId721">Volcanion</string>
+    <string name="title_activity_background_preference">Background Scan Preferences</string>
 </resources>
