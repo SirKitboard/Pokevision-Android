@@ -11,6 +11,8 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -22,11 +24,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.sirkitboard.pokevision.util.AsyncCallback;
@@ -43,11 +52,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Calendar;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     private GoogleMap mMap;
     private ProgressDialog pDialog;
+    GoogleApiClient mGoogleApiClient;
 
 //    JobScheduler mJobScheduler;
     double lat = 40.736866399, lon=-73.989969349;
@@ -63,7 +74,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
     }
+
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -126,28 +156,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     123);
         } else {
             mMap.setMyLocationEnabled(true);
-            Location location = getMyLocation();
-            if(location != null) {
-                lat = location.getLatitude();
-                lon = location.getLongitude();
-                new JSONParse(this).execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
-            }
+            new JSONParse(this).execute("https://pokevision.com/map/data/"+ lat +"/" + lon);
         }
-    }
-
-    private Location getMyLocation() {
-        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        Location myLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-        if (myLocation == null) {
-            Criteria criteria = new Criteria();
-            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-            String provider = lm.getBestProvider(criteria, true);
-            System.out.println(provider);
-            myLocation = lm.getLastKnownLocation(provider);
-        }
-
-        return myLocation;
     }
 
     private String getStringResourceByName(String aString) {
@@ -183,15 +193,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void asyncSuccess(JSONArray pokemons) {
         mMap.clear();
+        Calendar today = Calendar.getInstance();
+
         for(int i = 0; i<pokemons.length(); i++) {
             try {
                 JSONObject pokemon = pokemons.getJSONObject(i);
+                long timeLeft = pokemon.getLong("expiration_time") - today.getTimeInMillis()/1000;
                 LatLng pokePos = new LatLng(pokemon.getDouble("latitude"), pokemon.getDouble("longitude"));
                 String pokeName = getStringResourceByName("pokemonId"+pokemon.getInt("pokemonId"));
                 int pokeImage = getDrawableResourceByName("pokemon_"+pokemon.getInt("pokemonId"));
                 mMap.addMarker(new MarkerOptions()
                         .position(pokePos)
                         .title(pokeName)
+                        .snippet((timeLeft/(60)) + " min " + (timeLeft % 60) + " secs")
                         .icon(BitmapDescriptorFactory.fromResource(pokeImage)));
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -207,5 +221,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void asyncCompleted() {
         pDialog.dismiss();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) throws SecurityException{
+        Location location = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        LocationRequest mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        lat = location.getLatitude();
+        lon = location.getLongitude();
+
+        CameraPosition camPos = new CameraPosition.Builder()
+                .target(new LatLng(lat, lon))
+                .zoom(15)
+                .bearing(location.getBearing())
+                .tilt(0)
+                .build();
+        CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
+        mMap.animateCamera(camUpd3);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        lat = location.getLatitude();
+        lon = location.getLongitude();
     }
 }

@@ -56,7 +56,7 @@ public class BackgroundPreference extends AppCompatActivity {
 				    JobInfo.Builder builder = new JobInfo.Builder( 1,
 						    new ComponentName( getPackageName(), PokeCheck.class.getName() ) );
 				    System.out.println("START");
-				    builder.setPeriodic( 6000 );
+				    builder.setPeriodic( 600000 );
 				    if( mJobScheduler.schedule( builder.build() ) <= 0 ) {
 					    //If something goes wrong
 				    }
